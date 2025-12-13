@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parking System</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">Automated Parking System</div>
+      <nav class="nav">
+        <a class="navlink" href="{% url 'dashboard' %}">Dashboard</a>
+        <a class="navlink" href="{% url 'check_in' %}">Check In</a>
+        <a class="navlink" href="{% url 'check_out' %}">Check Out</a>
+        <a class="navlink" href="/admin/">Admin</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      {% if messages %}
+        <div class="flashwrap">
+          {% for message in messages %}
+            <div class="flash {{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <div>Rate per hour is fixed. Minimum billing is one hour.</div>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="page-title">Dashboard</h1>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">Rate per hour</div>
+    <div class="value">₱{{ rate_per_hour|floatformat:2 }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Total slots</div>
+    <div class="value">{{ total_slots }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Available</div>
+    <div class="value">{{ available_slots }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Occupied</div>
+    <div class="value">{{ occupied_slots }}</div>
+  </div>
+</div>
+
+<!-- ACTIVE SESSIONS -->
+<section class="card">
+  <div class="card-head">
+    <h2>Active sessions</h2>
+    <a class="btn primary small" href="{% url 'check_in' %}">New check in</a>
+  </div>
+
+  {% if active_sessions %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Plate</th>
+          <th>Slot</th>
+          <th>Time in</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in active_sessions %}
+        <tr>
+          <td class="mono">{{ s.ticket_number }}</td>
+          <td class="mono">{{ s.plate_number }}</td>
+          <td>{{ s.slot.code }}</td>
+          <td>{{ s.time_in|date:"Y-m-d H:i" }}</td>
+          <td class="right">
+            <a class="btn ghost small" href="{% url 'session_detail' s.id %}">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="muted">No active sessions.</p>
+  {% endif %}
+</section>
+
+<!-- PAID SESSIONS -->
+<section class="card">
+  <div class="card-head">
+    <h2>Paid sessions</h2>
+    <a class="btn ghost small" href="{% url 'check_out' %}">Check Out and Pay</a>
+  </div>
+
+  {% if paid_sessions %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Plate</th>
+          <th>Slot</th>
+          <th>Time out</th>
+          <th>Paid</th>
+          <th>Change</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in paid_sessions %}
+        <tr>
+          <td class="mono">{{ s.plate_number }}</td>
+          <td>{{ s.slot.code }}</td>
+          <td>{{ s.time_out|date:"Y-m-d H:i" }}</td>
+          <td>₱{{ s.amount_paid|floatformat:2 }}</td>
+          <td>₱{{ s.change|floatformat:2 }}</td>
+          <td class="right">
+            <a class="btn ghost small" href="{% url 'session_detail' s.id %}">Receipt</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="muted">No paid sessions yet.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

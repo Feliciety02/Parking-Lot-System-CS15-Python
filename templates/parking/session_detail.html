@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="page-title">Session details</h1>
+
+<div class="card session-card">
+
+  <!-- BASIC INFO -->
+  <div class="grid session-grid">
+    <div class="kv">
+      <div class="k">Ticket</div>
+      <div class="v mono">{{ session.ticket_number }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Plate</div>
+      <div class="v mono">{{ session.plate_number }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Slot</div>
+      <div class="v mono">{{ session.slot.code }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Status</div>
+      <div class="v">{{ session.status }}</div>
+    </div>
+  </div>
+
+  <!-- TIME INFO -->
+  <div class="grid session-grid">
+    <div class="kv">
+      <div class="k">Time in</div>
+      <div class="v">{{ session.time_in|date:"Y-m-d H:i" }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Time out</div>
+      <div class="v">
+        {% if session.time_out %}
+          {{ session.time_out|date:"Y-m-d H:i" }}
+        {% else %}
+          —
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Duration</div>
+      <div class="v">{{ session.duration_minutes }} min</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Rate per hour</div>
+      <div class="v">₱{{ rate_per_hour|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <!-- PAYMENT INFO -->
+  <div class="grid session-grid">
+    <div class="kv">
+      <div class="k">Amount due</div>
+      <div class="v">₱{{ session.amount_due|floatformat:2 }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Cash received</div>
+      <div class="v">₱{{ session.cash_received|floatformat:2 }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Paid</div>
+      <div class="v">₱{{ session.amount_paid|floatformat:2 }}</div>
+    </div>
+
+    <div class="kv">
+      <div class="k">Change</div>
+      <div class="v">₱{{ session.change|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a class="btn ghost small" href="{% url 'dashboard' %}">
+      Back to dashboard
+    </a>
+  </div>
+
+</div>
+
+{% endblock %}

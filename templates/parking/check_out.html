@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="page-title">Check Out and Pay</h1>
+<p class="muted">
+  Enter plate number and cash received. System will compute due amount and change.
+  Full payment is required.
+</p>
+
+<div class="card form-card">
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="field">
+      <label>Plate number</label>
+      {{ form.plate_number }}
+      {% if form.plate_number.errors %}
+        <div class="err">{{ form.plate_number.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="field">
+      <label>Cash received</label>
+      {{ form.cash_received }}
+      {% if form.cash_received.errors %}
+        <div class="err">{{ form.cash_received.errors }}</div>
+      {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="err">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="ratebox">
+      <div class="label">Rate per hour</div>
+      <div class="value">₱{{ rate_per_hour|floatformat:2 }}</div>
+      <div class="hint">Minimum billing is one hour.</div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn primary big">
+        Complete check out and pay
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
