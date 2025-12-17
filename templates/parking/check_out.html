@@ -3,102 +3,139 @@
 
 <h1 class="page-title">Check Out and Pay</h1>
 <p class="muted">
-  Select a parked vehicle to view details and amount due.
-  Full payment is required before checkout.
+  Select a parked vehicle to review details and complete payment.
 </p>
 
-<div class="card form-card">
-  <form method="post">
-    {% csrf_token %}
+<style>
+.checkout-wrapper {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
 
-    <!-- Vehicle selection -->
-    <div class="section">
-      <h3 class="section-title">Vehicle</h3>
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
 
-      <div class="field">
-        <label>Parked vehicle</label>
-        {{ form.session }}
-        {% if form.session.errors %}
-          <div class="err">{{ form.session.errors }}</div>
-        {% endif %}
-      </div>
-    </div>
+.vehicle-card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 1.25rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
 
-    {% if session %}
-    <!-- Parking details -->
-    <div class="section subtle">
-      <div class="info-row">
-        <span>Plate number</span>
-        <span>{{ session.plate_number }}</span>
-      </div>
-      <div class="info-row">
-        <span>Slot</span>
-        <span>{{ session.slot.code }}</span>
-      </div>
-      <div class="info-row">
-        <span>Time in</span>
-        <span>{{ session.time_in }}</span>
-      </div>
-      <div class="info-row">
-        <span>Time out</span>
-        <span>{{ session.time_out }}</span>
-      </div>
-    </div>
+.vehicle-card input {
+  display: none;
+}
 
-    <!-- Payment summary -->
-    <div class="section highlight">
-      <h3 class="section-title">Payment Summary</h3>
+.vehicle-card:hover {
+  background: rgba(255,255,255,0.08);
+}
 
-      <div class="info-row">
-        <span>Rate per hour</span>
-        <span>₱{{ rate_per_hour|floatformat:2 }}</span>
+.vehicle-card:has(input:checked) {
+  border-color: #4f8cff;
+  background: rgba(79,140,255,0.12);
+}
+
+.vehicle-card .plate {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.vehicle-card .meta {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+}
+
+.vehicle-card .due {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.summary {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.summary .amount {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+</style>
+
+<div class="checkout-wrapper">
+  <div class="card form-card">
+
+    <form method="post">
+      {% csrf_token %}
+
+      <h3>Parked vehicles</h3>
+
+      <div class="vehicle-grid">
+        {% for s in active_sessions %}
+        <label class="vehicle-card">
+          <input
+            type="radio"
+            name="session"
+            value="{{ s.id }}"
+            {% if selected_session and selected_session.id == s.id %}checked{% endif %}
+            onchange="this.form.submit()"
+          >
+          <div class="plate">{{ s.plate_number }}</div>
+          <div class="meta">
+            Slot {{ s.slot.code }} • {{ s.duration_minutes }} min
+          </div>
+        </label>
+        {% empty %}
+          <p class="muted">No active parked vehicles.</p>
+        {% endfor %}
       </div>
 
-      <div class="info-row">
-        <span>Total hours billed</span>
-        <span>{{ hours }}</span>
-      </div>
-
-      <div class="total-due">
-        <div class="label">Amount Due</div>
+      {% if selected_session %}
+      <div class="summary">
+        <div class="label">Amount due</div>
         <div class="amount">₱{{ amount_due|floatformat:2 }}</div>
+        <div class="muted">
+          {{ hours }} hour(s) billed • ₱{{ rate_per_hour }} per hour
+        </div>
       </div>
 
-      <div class="hint">Minimum billing is one hour.</div>
-    </div>
-    {% endif %}
-
-    <!-- Payment -->
-    <div class="section">
-      <h3 class="section-title">Payment</h3>
-
-      <div class="field">
+      <div class="field" style="margin-top: 1.5rem;">
         <label>Cash received</label>
         {{ form.cash_received }}
-        {% if form.cash_received.errors %}
-          <div class="err">{{ form.cash_received.errors }}</div>
-        {% endif %}
-      </div>
-
-      {% if session.change %}
-      <div class="info-row change">
-        <span>Change</span>
-        <span>₱{{ session.change|floatformat:2 }}</span>
       </div>
       {% endif %}
-    </div>
 
-    {% if form.non_field_errors %}
-      <div class="err">{{ form.non_field_errors }}</div>
-    {% endif %}
+      {% if form.non_field_errors %}
+        <div class="err">{{ form.non_field_errors }}</div>
+      {% endif %}
 
-    <div class="actions">
-      <button type="submit" class="btn primary big">
-        Complete check out and pay
-      </button>
-    </div>
+      <div class="actions">
+        <button
+          type="submit"
+          class="btn primary"
+          {% if not selected_session %}disabled{% endif %}
+        >
+          Complete check out and pay
+        </button>
+      </div>
 
-  </form>
+    </form>
+
+  </div>
 </div>
 
 {% endblock %}

@@ -19,21 +19,15 @@ class CheckInForm(forms.Form):
     )
 
 
-class CheckOutForm(forms.Form):
-    session = forms.ModelChoiceField(
-        queryset=ParkingSession.objects.filter(status=ParkingSession.STATUS_ACTIVE),
-        empty_label="Select a parked vehicle",
-        label="Parked vehicle",
-        widget=forms.Select(attrs={"class": "input"})
-    )
 
+class CheckOutForm(forms.Form):
+    session = forms.IntegerField(required=True)
     cash_received = forms.DecimalField(
-        min_value=Decimal("0.00"),
+        min_value=0,
         decimal_places=2,
-        label="Cash received",
         required=False,
         widget=forms.NumberInput(attrs={
+            "placeholder": "₱0.00",
             "class": "input",
-            "placeholder": "Enter cash amount"
         })
     )
