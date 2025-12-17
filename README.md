@@ -89,48 +89,36 @@ Parking-Lot-System-CS15-Python/
 ├── requirements.txt
 └── README.md
 
-yaml
-Copy code
-
 ---
 
 ## 🚀 Installation and Setup
 
 ### 1. Clone the Repository
 ```bash
+
 git clone https://github.com/Feliciety02/Parking-Lot-System-CS15-Python.git
 cd Parking-Lot-System-CS15-Python
 2. Create and Activate Virtual Environment
-bash
-Copy code
 python -m venv venv
 Windows
 
-bash
-Copy code
 venv\Scripts\activate
 macOS / Linux
 
-bash
-Copy code
+
 source venv/bin/activate
 3. Install Dependencies
-bash
-Copy code
 pip install -r requirements.txt
-4. Apply Database Migrations
-bash
-Copy code
-python manage.py migrate
-5. Run the Development Server
-bash
-Copy code
-python manage.py runserver
-Open in browser:
 
-cpp
-Copy code
+4. Apply Database Migrations
+python manage.py migrate
+
+5. Run the Development Server
+python manage.py runserver
+
+Open in browser:
 http://127.0.0.1:8000/
+
 💰 Billing Rules
 Parking is billed per hour
 
