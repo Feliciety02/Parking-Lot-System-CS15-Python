@@ -3,10 +3,54 @@
 
 <h1 class="page-title">Check in</h1>
 
+<style>
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.slot-card {
+  cursor: pointer;
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.slot-card input {
+  display: none;
+}
+
+.slot-card:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.slot-card:has(input:checked) {
+  border-color: #4f8cff;
+  background: rgba(79,140,255,0.12);
+}
+
+.slot-code {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.slot-floor {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+</style>
+
 <div class="card form-card">
+
   <form method="post">
     {% csrf_token %}
 
+    <!-- Plate -->
     <div class="field">
       <label>Plate number</label>
       {{ form.plate_number }}
@@ -15,25 +59,42 @@
       {% endif %}
     </div>
 
+    <!-- Slot selection -->
     <div class="field">
       <label>Parking slot</label>
-      {{ form.slot }}
-      <div class="hint">Only available slots are shown.</div>
+
+      <div class="slot-grid">
+        {% for slot in available_slots %}
+          <label class="slot-card">
+            <input
+              type="radio"
+              name="slot"
+              value="{{ slot.id }}"
+              {% if form.slot.value == slot.id|stringformat:"s" %}checked{% endif %}
+            >
+            <div class="slot-code">{{ slot.code }}</div>
+            <div class="slot-floor">Floor {{ slot.floor }}</div>
+          </label>
+        {% empty %}
+          <p class="muted">No available parking slots.</p>
+        {% endfor %}
+      </div>
+
       {% if form.slot.errors %}
         <div class="err">{{ form.slot.errors }}</div>
       {% endif %}
+
+      <div class="hint">Only available slots are shown.</div>
     </div>
 
-    {% if form.non_field_errors %}
-      <div class="err">{{ form.non_field_errors }}</div>
-    {% endif %}
-
     <div class="actions">
-      <button type="submit" class="btn primary big">
+      <button type="submit" class="btn primary">
         Confirm check in
       </button>
     </div>
+
   </form>
+
 </div>
 
 {% endblock %}

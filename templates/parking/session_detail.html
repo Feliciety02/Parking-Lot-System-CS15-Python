@@ -3,89 +3,163 @@
 
 <h1 class="page-title">Session details</h1>
 
-<div class="card session-card">
+<style>
+.session-wrapper {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
 
-  <!-- BASIC INFO -->
-  <div class="grid session-grid">
-    <div class="kv">
-      <div class="k">Ticket</div>
-      <div class="v mono">{{ session.ticket_number }}</div>
-    </div>
+.session-card {
+  padding: 2.5rem;
+}
 
-    <div class="kv">
-      <div class="k">Plate</div>
-      <div class="v mono">{{ session.plate_number }}</div>
-    </div>
+.session-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
 
-    <div class="kv">
-      <div class="k">Slot</div>
-      <div class="v mono">{{ session.slot.code }}</div>
-    </div>
+.kv {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
 
-    <div class="kv">
-      <div class="k">Status</div>
-      <div class="v">{{ session.status }}</div>
-    </div>
-  </div>
+.kv .k {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 0.35rem;
+}
 
-  <!-- TIME INFO -->
-  <div class="grid session-grid">
-    <div class="kv">
-      <div class="k">Time in</div>
-      <div class="v">{{ session.time_in|date:"Y-m-d H:i" }}</div>
-    </div>
+.kv .v {
+  font-size: 1.1rem;
+}
 
-    <div class="kv">
-      <div class="k">Time out</div>
-      <div class="v">
-        {% if session.time_out %}
-          {{ session.time_out|date:"Y-m-d H:i" }}
-        {% else %}
-          —
-        {% endif %}
+.kv.emphasis {
+  grid-column: 1 / -1;
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgba(80, 140, 255, 0.18),
+    rgba(80, 140, 255, 0.05)
+  );
+}
+
+.kv.emphasis .v.big {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.hint {
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+</style>
+
+<div class="session-wrapper">
+  <div class="card session-card">
+
+    <!-- VEHICLE INFO -->
+    <div class="grid session-grid">
+      <div class="kv">
+        <div class="k">Plate</div>
+        <div class="v mono">{{ session.plate_number }}</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Slot</div>
+        <div class="v mono">{{ session.slot.code }}</div>
       </div>
     </div>
 
-    <div class="kv">
-      <div class="k">Duration</div>
-      <div class="v">{{ session.duration_minutes }} min</div>
+    <!-- TIME INFO -->
+    <div class="grid session-grid">
+      <div class="kv">
+        <div class="k">Time in</div>
+        <div class="v">{{ session.time_in|date:"Y-m-d H:i" }}</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Time out</div>
+        <div class="v">
+          {% if session.time_out %}
+            {{ session.time_out|date:"Y-m-d H:i" }}
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Duration</div>
+        <div class="v">
+          {% if session.status == "ACTIVE" %}
+            {{ duration_minutes }} min
+          {% else %}
+            {{ session.duration_minutes }} min
+          {% endif %}
+        </div>
+      </div>
     </div>
 
-    <div class="kv">
-      <div class="k">Rate per hour</div>
-      <div class="v">₱{{ rate_per_hour|floatformat:2 }}</div>
+    <!-- BILLING -->
+    <div class="grid session-grid">
+      <div class="kv emphasis">
+        <div class="k">Amount due</div>
+        <div class="v big">
+          {% if session.status == "ACTIVE" %}
+            ₱{{ amount_due|floatformat:2 }}
+          {% else %}
+            ₱{{ session.amount_due|floatformat:2 }}
+          {% endif %}
+        </div>
+      </div>
+
+      {% if session.status == "PAID" %}
+      <div class="kv">
+        <div class="k">Cash received</div>
+        <div class="v">₱{{ session.cash_received|floatformat:2 }}</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Change</div>
+        <div class="v">₱{{ session.change|floatformat:2 }}</div>
+      </div>
+      {% endif %}
     </div>
+
+    <div class="hint">
+      Rate per hour: ₱{{ rate_per_hour|floatformat:2 }} • Minimum billing is one hour
+    </div>
+
+    <div class="actions">
+      <a class="btn ghost small" href="{% url 'dashboard' %}">
+        Back to dashboard
+      </a>
+    </div>
+
   </div>
-
-  <!-- PAYMENT INFO -->
-  <div class="grid session-grid">
-    <div class="kv">
-      <div class="k">Amount due</div>
-      <div class="v">₱{{ session.amount_due|floatformat:2 }}</div>
-    </div>
-
-    <div class="kv">
-      <div class="k">Cash received</div>
-      <div class="v">₱{{ session.cash_received|floatformat:2 }}</div>
-    </div>
-
-    <div class="kv">
-      <div class="k">Paid</div>
-      <div class="v">₱{{ session.amount_paid|floatformat:2 }}</div>
-    </div>
-
-    <div class="kv">
-      <div class="k">Change</div>
-      <div class="v">₱{{ session.change|floatformat:2 }}</div>
-    </div>
-  </div>
-
-  <div class="actions">
-    <a class="btn ghost small" href="{% url 'dashboard' %}">
-      Back to dashboard
-    </a>
-  </div>
-
 </div>
+
+{% if session.status == "ACTIVE" %}
+<script>
+  setTimeout(() => {
+    window.location.reload();
+  }, 30000);
+</script>
+{% endif %}
 
 {% endblock %}

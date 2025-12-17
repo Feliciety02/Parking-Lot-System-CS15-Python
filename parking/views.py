@@ -26,14 +26,18 @@ def dashboard(request):
         "total_slots": ParkingSlot.objects.count(),
     })
 
-
 @transaction.atomic
 def check_in(request):
+    available_slots = ParkingSlot.objects.filter(
+        is_occupied=False
+    ).order_by("floor", "code")
+
     if request.method == "POST":
         form = CheckInForm(request.POST)
         if form.is_valid():
-            slot = form.cleaned_data["slot"]
-            slot = ParkingSlot.objects.select_for_update().get(pk=slot.pk)
+            slot = ParkingSlot.objects.select_for_update().get(
+                pk=form.cleaned_data["slot"].pk
+            )
 
             if slot.is_occupied:
                 form.add_error("slot", "This parking slot is already occupied.")
@@ -57,64 +61,75 @@ def check_in(request):
                         status=ParkingSession.STATUS_ACTIVE,
                     )
 
-                    messages.success(request, f"Checked in {plate} at slot {slot.code}")
+                    messages.success(
+                        request,
+                        f"Checked in {plate} at slot {slot.code}"
+                    )
                     return redirect("dashboard")
     else:
         form = CheckInForm()
 
-    return render(request, "parking/check_in.html", {"form": form})
+    return render(request, "parking/check_in.html", {
+        "form": form,
+        "available_slots": available_slots,
+    })
 
 
 @transaction.atomic
 def check_out(request):
-    form = CheckOutForm(request.POST or None)
+    active_sessions = ParkingSession.objects.filter(
+        status=ParkingSession.STATUS_ACTIVE
+    ).select_related("slot")
 
-    context = {
-        "form": form,
-        "rate_per_hour": RATE_PER_HOUR,
-    }
+    selected_session = None
+    amount_due = None
+    hours = None
 
-    if request.method == "POST" and form.is_valid():
-        session = form.cleaned_data["session"]
-        cash = form.cleaned_data.get("cash_received")
+    if request.method == "POST":
+        form = CheckOutForm(request.POST)
 
-        session = ParkingSession.objects.select_for_update().select_related("slot").get(
-            pk=session.pk
-        )
+        if form.is_valid():
+            session_id = form.cleaned_data["session"]
+            cash = form.cleaned_data.get("cash_received")
 
-        session.time_out = timezone.now()
-        amount_due = session.compute_amount_due()
-        hours = session.billed_hours()
-
-        context.update({
-            "session": session,
-            "hours": hours,
-            "amount_due": amount_due,
-        })
-
-        if cash is not None:
-            try:
-                session.checkout_and_pay_full(Decimal(cash))
-            except ValueError as e:
-                form.add_error(None, str(e))
-                return render(request, "parking/check_out.html", context)
-
-            session.save()
-
-            slot = session.slot
-            slot.is_occupied = False
-            slot.save()
-
-            messages.success(
-                request,
-                f"Paid ₱{session.amount_paid:.2f}. "
-                f"Change ₱{session.change:.2f}. "
-                f"Slot {slot.code} is now available."
+            selected_session = ParkingSession.objects.select_for_update().get(
+                pk=session_id,
+                status=ParkingSession.STATUS_ACTIVE
             )
 
-            return redirect("session_detail", session_id=session.id)
+            selected_session.time_out = timezone.now()
+            hours = selected_session.billed_hours()
+            amount_due = selected_session.compute_amount_due()
 
-    return render(request, "parking/check_out.html", context)
+            if cash is not None:
+                try:
+                    selected_session.checkout_and_pay_full(Decimal(cash))
+                except ValueError as e:
+                    form.add_error(None, str(e))
+                else:
+                    selected_session.save()
+
+                    slot = selected_session.slot
+                    slot.is_occupied = False
+                    slot.save()
+
+                    messages.success(
+                        request,
+                        f"Paid ₱{selected_session.amount_paid:.2f}. "
+                        f"Change ₱{selected_session.change:.2f}."
+                    )
+                    return redirect("session_detail", session_id=selected_session.id)
+    else:
+        form = CheckOutForm()
+
+    return render(request, "parking/check_out.html", {
+        "form": form,
+        "active_sessions": active_sessions,
+        "selected_session": selected_session,
+        "amount_due": amount_due,
+        "hours": hours,
+        "rate_per_hour": RATE_PER_HOUR,
+    })
 
 
 def session_detail(request, session_id):
@@ -123,7 +138,20 @@ def session_detail(request, session_id):
         pk=session_id
     )
 
+    # REALTIME COMPUTATION
+    if session.status == ParkingSession.STATUS_ACTIVE:
+        duration_minutes = session.duration_minutes()
+        billed_hours = session.billed_hours()
+        amount_due = session.compute_amount_due()
+    else:
+        duration_minutes = session.duration_minutes()
+        billed_hours = session.billed_hours()
+        amount_due = session.amount_due
+
     return render(request, "parking/session_detail.html", {
         "session": session,
-        "rate_per_hour": RATE_PER_HOUR
+        "rate_per_hour": RATE_PER_HOUR,
+        "duration_minutes": duration_minutes,
+        "billed_hours": billed_hours,
+        "amount_due": amount_due,
     })
