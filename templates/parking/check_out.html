@@ -3,27 +3,88 @@
 
 <h1 class="page-title">Check Out and Pay</h1>
 <p class="muted">
-  Enter plate number and cash received. System will compute due amount and change.
-  Full payment is required.
+  Select a parked vehicle to view details and amount due.
+  Full payment is required before checkout.
 </p>
 
 <div class="card form-card">
   <form method="post">
     {% csrf_token %}
 
-    <div class="field">
-      <label>Plate number</label>
-      {{ form.plate_number }}
-      {% if form.plate_number.errors %}
-        <div class="err">{{ form.plate_number.errors }}</div>
-      {% endif %}
+    <!-- Vehicle selection -->
+    <div class="section">
+      <h3 class="section-title">Vehicle</h3>
+
+      <div class="field">
+        <label>Parked vehicle</label>
+        {{ form.session }}
+        {% if form.session.errors %}
+          <div class="err">{{ form.session.errors }}</div>
+        {% endif %}
+      </div>
     </div>
 
-    <div class="field">
-      <label>Cash received</label>
-      {{ form.cash_received }}
-      {% if form.cash_received.errors %}
-        <div class="err">{{ form.cash_received.errors }}</div>
+    {% if session %}
+    <!-- Parking details -->
+    <div class="section subtle">
+      <div class="info-row">
+        <span>Plate number</span>
+        <span>{{ session.plate_number }}</span>
+      </div>
+      <div class="info-row">
+        <span>Slot</span>
+        <span>{{ session.slot.code }}</span>
+      </div>
+      <div class="info-row">
+        <span>Time in</span>
+        <span>{{ session.time_in }}</span>
+      </div>
+      <div class="info-row">
+        <span>Time out</span>
+        <span>{{ session.time_out }}</span>
+      </div>
+    </div>
+
+    <!-- Payment summary -->
+    <div class="section highlight">
+      <h3 class="section-title">Payment Summary</h3>
+
+      <div class="info-row">
+        <span>Rate per hour</span>
+        <span>₱{{ rate_per_hour|floatformat:2 }}</span>
+      </div>
+
+      <div class="info-row">
+        <span>Total hours billed</span>
+        <span>{{ hours }}</span>
+      </div>
+
+      <div class="total-due">
+        <div class="label">Amount Due</div>
+        <div class="amount">₱{{ amount_due|floatformat:2 }}</div>
+      </div>
+
+      <div class="hint">Minimum billing is one hour.</div>
+    </div>
+    {% endif %}
+
+    <!-- Payment -->
+    <div class="section">
+      <h3 class="section-title">Payment</h3>
+
+      <div class="field">
+        <label>Cash received</label>
+        {{ form.cash_received }}
+        {% if form.cash_received.errors %}
+          <div class="err">{{ form.cash_received.errors }}</div>
+        {% endif %}
+      </div>
+
+      {% if session.change %}
+      <div class="info-row change">
+        <span>Change</span>
+        <span>₱{{ session.change|floatformat:2 }}</span>
+      </div>
       {% endif %}
     </div>
 
@@ -31,17 +92,12 @@
       <div class="err">{{ form.non_field_errors }}</div>
     {% endif %}
 
-    <div class="ratebox">
-      <div class="label">Rate per hour</div>
-      <div class="value">₱{{ rate_per_hour|floatformat:2 }}</div>
-      <div class="hint">Minimum billing is one hour.</div>
-    </div>
-
     <div class="actions">
       <button type="submit" class="btn primary big">
         Complete check out and pay
       </button>
     </div>
+
   </form>
 </div>
 

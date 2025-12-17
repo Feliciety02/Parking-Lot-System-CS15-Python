@@ -9,8 +9,13 @@ from .models import ParkingSession, ParkingSlot, RATE_PER_HOUR
 
 
 def dashboard(request):
-    active_sessions = ParkingSession.objects.filter(status=ParkingSession.STATUS_ACTIVE).select_related("slot")
-    paid_sessions = ParkingSession.objects.filter(status=ParkingSession.STATUS_PAID).select_related("slot")
+    active_sessions = ParkingSession.objects.filter(
+        status=ParkingSession.STATUS_ACTIVE
+    ).select_related("slot")
+
+    paid_sessions = ParkingSession.objects.filter(
+        status=ParkingSession.STATUS_PAID
+    ).select_related("slot")
 
     return render(request, "parking/home.html", {
         "active_sessions": active_sessions,
@@ -34,7 +39,11 @@ def check_in(request):
                 form.add_error("slot", "This parking slot is already occupied.")
             else:
                 plate = form.cleaned_data["plate_number"].strip().upper()
-                if ParkingSession.objects.filter(plate_number=plate, status=ParkingSession.STATUS_ACTIVE).exists():
+
+                if ParkingSession.objects.filter(
+                    plate_number=plate,
+                    status=ParkingSession.STATUS_ACTIVE
+                ).exists():
                     form.add_error("plate_number", "This plate number is already parked.")
                 else:
                     slot.is_occupied = True
@@ -47,7 +56,8 @@ def check_in(request):
                         time_in=timezone.now(),
                         status=ParkingSession.STATUS_ACTIVE,
                     )
-                    messages.success(request, f"Checked in: {plate} at {slot.code}")
+
+                    messages.success(request, f"Checked in {plate} at slot {slot.code}")
                     return redirect("dashboard")
     else:
         form = CheckInForm()
@@ -57,23 +67,37 @@ def check_in(request):
 
 @transaction.atomic
 def check_out(request):
-    if request.method == "POST":
-        form = CheckOutForm(request.POST)
-        if form.is_valid():
-            plate = form.cleaned_data["plate_number"].strip().upper()
-            cash = form.cleaned_data["cash_received"]
+    form = CheckOutForm(request.POST or None)
 
-            session = get_object_or_404(
-                ParkingSession.objects.select_for_update().select_related("slot"),
-                plate_number=plate,
-                status=ParkingSession.STATUS_ACTIVE,
-            )
+    context = {
+        "form": form,
+        "rate_per_hour": RATE_PER_HOUR,
+    }
 
+    if request.method == "POST" and form.is_valid():
+        session = form.cleaned_data["session"]
+        cash = form.cleaned_data.get("cash_received")
+
+        session = ParkingSession.objects.select_for_update().select_related("slot").get(
+            pk=session.pk
+        )
+
+        session.time_out = timezone.now()
+        amount_due = session.compute_amount_due()
+        hours = session.billed_hours()
+
+        context.update({
+            "session": session,
+            "hours": hours,
+            "amount_due": amount_due,
+        })
+
+        if cash is not None:
             try:
                 session.checkout_and_pay_full(Decimal(cash))
             except ValueError as e:
                 form.add_error(None, str(e))
-                return render(request, "parking/check_out.html", {"form": form, "rate_per_hour": RATE_PER_HOUR})
+                return render(request, "parking/check_out.html", context)
 
             session.save()
 
@@ -81,14 +105,25 @@ def check_out(request):
             slot.is_occupied = False
             slot.save()
 
-            messages.success(request, f"Paid {session.amount_paid:.2f}. Change {session.change:.2f}. Slot {slot.code} is now available.")
+            messages.success(
+                request,
+                f"Paid ₱{session.amount_paid:.2f}. "
+                f"Change ₱{session.change:.2f}. "
+                f"Slot {slot.code} is now available."
+            )
+
             return redirect("session_detail", session_id=session.id)
-    else:
-        form = CheckOutForm()
 
-    return render(request, "parking/check_out.html", {"form": form, "rate_per_hour": RATE_PER_HOUR})
+    return render(request, "parking/check_out.html", context)
 
 
-def session_detail(request, session_id: int):
-    session = get_object_or_404(ParkingSession.objects.select_related("slot"), pk=session_id)
-    return render(request, "parking/session_detail.html", {"session": session, "rate_per_hour": RATE_PER_HOUR})
+def session_detail(request, session_id):
+    session = get_object_or_404(
+        ParkingSession.objects.select_related("slot"),
+        pk=session_id
+    )
+
+    return render(request, "parking/session_detail.html", {
+        "session": session,
+        "rate_per_hour": RATE_PER_HOUR
+    })

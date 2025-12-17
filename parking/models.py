@@ -22,8 +22,8 @@ class ParkingSlot(models.Model):
     class Meta:
         ordering = ["code"]
 
-    def __str__(self) -> str:
-        return self.code
+def __str__(self) -> str:
+    return f"{self.plate_number} | Slot {self.slot.code} | {self.time_in.strftime('%I:%M %p')}"
 
 
 class ParkingSession(models.Model):
