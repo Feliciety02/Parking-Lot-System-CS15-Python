@@ -1,16 +1,11 @@
-<p align="center">
-  <h1 align="center">🚗 Parking Lot System</h1>
-  <p align="center">
-    CS15 • Python • Django Web Application
-  </p>
-</p>
+# 🚗 Parking Lot System
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.x-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Django-5.x-green?style=flat-square" />
-  <img src="https://img.shields.io/badge/Database-SQLite-lightgrey?style=flat-square" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" />
-</p>
+**CS15 – Python | Django Web Application**
+
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Django](https://img.shields.io/badge/Django-5.x-green)
+![Database](https://img.shields.io/badge/Database-SQLite-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
 
@@ -19,7 +14,7 @@
 The **Parking Lot System** is a web-based application developed using **Python and Django**.  
 It automates parking operations such as vehicle check-in, check-out, slot allocation, and real-time billing.
 
-The system is designed with a focus on **usability**, **clarity**, and **real-world workflow simulation**, making it suitable for both academic and practical use.
+The system is designed with a focus on **usability**, **clarity**, and **real-world workflow simulation**, making it suitable for academic and practical use.
 
 ---
 
@@ -38,7 +33,7 @@ The system is designed with a focus on **usability**, **clarity**, and **real-wo
 ### ⏱️ Real-Time Billing
 - Fixed hourly rate
 - Minimum billing of one hour
-- Billing duration is rounded up to the next hour
+- Duration rounded up to the next hour
 
 ### 📄 Session Details
 - Displays plate number, slot, duration, and billing summary
@@ -46,7 +41,7 @@ The system is designed with a focus on **usability**, **clarity**, and **real-wo
 
 ### 🛠️ Administration
 - Uses Django’s built-in admin panel
-- Manage parking slots and sessions easily
+- Manage parking data efficiently
 
 ---
 
@@ -70,7 +65,7 @@ The system is designed with a focus on **usability**, **clarity**, and **real-wo
 | Layer | Technology |
 |------|-----------|
 | Backend | Python (Django) |
-| Frontend | HTML, CSS (Django Templates) |
+| Frontend | HTML, CSS |
 | Database | SQLite |
 | Architecture | Model–View–Template (MVT) |
 
@@ -131,7 +126,7 @@ python manage.py migrate
 bash
 Copy code
 python manage.py runserver
-Access the application at:
+Open in browser:
 
 cpp
 Copy code
@@ -149,7 +144,7 @@ Examples
 
 1 hour 10 minutes → billed as 2 hours
 
-🔮 Future Enhancements
+🔮 Future Improvements
 Online payment integration
 
 Visual parking slot map
@@ -164,5 +159,5 @@ Role-based access control
 This project is licensed under the MIT License.
 
 👤 Author
-Developed as part of the CS15 Python Course Project
-Designed with emphasis on clean UI, correct logic, and real-world workflows.
+Developed as part of the CS15 Python Course Project.
+Focused on practical system design, usability, and clean interface layout.
